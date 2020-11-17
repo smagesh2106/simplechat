@@ -1,0 +1,455 @@
+/*
+ * Swagger User store
+ *
+ * This is a sample server User server.  You can find out more about     Swagger at [http://swagger.io](http://swagger.io) or on [irc.freenode.net, #swagger](http://swagger.io/irc/).      For this sample, you can use the api key `special-key` to test the authorization     filters.
+ *
+ */
+
+package api
+
+import (
+	"fmt"
+	"net/http"
+	"strings"
+
+	"crescent-go-backend/cresent/backend-go/driver"
+	"crescent-go-backend/cresent/backend-go/service"
+	"crescent-go-backend/cresent/backend-go/store"
+
+	"crescent-go-backend/cresent/backend-go/docs"
+
+	com "crescent-go-backend/cresent/backend-go/driver"
+
+	"github.com/gorilla/mux"                     // swagger embed files
+	httpSwagger "github.com/swaggo/http-swagger" // gin-swagger middleware
+	"go.mongodb.org/mongo-driver/mongo"
+)
+
+type Route struct {
+	Name        string
+	Method      string
+	Pattern     string
+	HandlerFunc http.HandlerFunc
+	Validate    bool
+}
+
+type Routes []Route
+
+func NewRouter() *mux.Router {
+	setSwaggerInfo()
+	newRoutes := getNewRoutes(driver.DB)
+	routes = append(routes, newRoutes...)
+	router := mux.NewRouter().StrictSlash(true)
+	for _, route := range routes {
+		var handler http.Handler
+		handler = route.HandlerFunc
+		if route.Validate {
+			handler = Validator(Logger(handler, route.Name))
+		}
+
+		router.
+			Methods(route.Method).
+			Path(route.Pattern).
+			Name(route.Name).
+			Handler(handler)
+	}
+
+	router.Methods("GET").PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
+
+	return router
+}
+
+func Index(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Hello World!")
+}
+
+var routes = Routes{
+	Route{
+		"Index",
+		"GET",
+		"/v1/",
+		Index,
+		true,
+	},
+	Route{
+		"CreateUser",
+		strings.ToUpper("Post"),
+		"/v1/user",
+		CreateUser,
+		true,
+	},
+	Route{
+		"DeleteUserById",
+		strings.ToUpper("Delete"),
+		"/v1/user/{id}",
+		DeleteUserById,
+		true,
+	},
+	Route{
+		"GetUserById",
+		strings.ToUpper("Get"),
+		"/v1/user/{id}",
+		GetUserById,
+		true,
+	},
+
+	Route{
+		"GetUsers",
+		strings.ToUpper("Get"),
+		"/v1/users",
+		GetUsers,
+		true,
+	},
+
+	Route{
+		"UpdateUserById",
+		strings.ToUpper("Put"),
+		"/v1/user/{id}",
+		UpdateUserById,
+		true,
+	},
+	Route{
+		//only after email verification can this be fired.
+		"ActivateUserById",
+		strings.ToUpper("Put"),
+		"/v1/user/activate/{id}",
+		ActivateUserById,
+		true,
+	},
+	Route{
+		"CreateToken",
+		strings.ToUpper("Post"),
+		"/oauth/callback",
+		CreateLinkedInToken,
+		true,
+	},
+	Route{
+		"CreateProject",
+		strings.ToUpper("Post"),
+		"/v1/project",
+		CreateProject,
+		true,
+	},
+	Route{
+		"GetProjectById",
+		strings.ToUpper("Get"),
+		"/v1/project/{id}",
+		GetProjectById,
+		true,
+	},
+
+	// Route{
+	// 	"GetProjects",
+	// 	strings.ToUpper("Get"),
+	// 	"/v1/projects",
+	// 	GetProjects,
+	//true,
+	// },
+	Route{
+		"CategoriesList",
+		strings.ToUpper("Get"),
+		"/v1/categories",
+		CategoriesList,
+		true,
+	},
+	Route{
+		"SubCategoryDetail",
+		strings.ToUpper("Get"),
+		"/v1/subcategory",
+		SubCategoryDetail,
+		true,
+	},
+	Route{
+		"UserAuthentication",
+		strings.ToUpper("Post"),
+		"/v1/user/auth",
+		UserAuthentication,
+		true,
+	},
+}
+
+func getNewRoutes(db *mongo.Database) Routes {
+	logger := com.Log
+	wpStore := store.WorkingProjectStore{
+		DB: db,
+	}
+	teamStore := store.TeamStore{
+		DB: db,
+	}
+	bidStore := store.BidStore{
+		DB: driver.DB,
+	}
+	taskStore := store.TaskStore{
+		DB: driver.DB,
+	}
+	mileStoneStore := store.MileStoneStore{
+		DB: driver.DB,
+	}
+	projectStore := store.ProjectStore{
+		DB: driver.DB,
+	}
+	userStore := store.UserStore{
+		DB: driver.DB,
+	}
+	docStore := store.DocumentStore{
+		DB: driver.DB,
+	}
+	wpService := service.WorkingProjectService{
+		WStore:       wpStore,
+		ProjectStore: projectStore,
+		BidStore:     bidStore,
+	}
+	teamService := service.TeamService{
+		TeamStore: teamStore,
+	}
+	bidService := service.BidService{
+		BidStore:       bidStore,
+		MilestoneStore: mileStoneStore,
+	}
+	taskService := service.TaskService{
+		TaskStore: taskStore,
+	}
+
+	mileStoneService := service.MileStoneService{
+		MileStoneStore: mileStoneStore,
+		BidStore:       bidStore,
+		Logger:         logger,
+	}
+	projectService := service.ProjectService{
+		ProjectStore: projectStore,
+		BidStore:     bidStore,
+		UserStore:    userStore,
+	}
+
+	documentService := service.DocumentService{
+		DocumentStore: docStore,
+	}
+
+	return Routes{
+		Route{
+			"GetWorkingProject",
+			"GET",
+			"/v1/working_project/{id}",
+			GetWorkingProject(wpService),
+			true,
+		},
+		Route{
+			"uploadUserDocument",
+			"PATCH",
+			"/v1/user/upload_document",
+			UploadIDProof(documentService),
+			true,
+		}, Route{
+			"QueryWorkingProject",
+			"GET",
+			"/v1/working_project",
+			QueryWorkingProject(wpService),
+			true,
+		},
+		Route{
+			"CreateWorkingProject",
+			"POST",
+			"/v1/working_project",
+			CreateWorkingProject(wpService),
+			true,
+		},
+		Route{
+			"UpdateWorkingProject",
+			"PATCH",
+			"/v1/working_project",
+			UpdateWorkingProject(wpService),
+			true,
+		},
+		Route{
+			"DeleteWorkingProject",
+			"DELETE",
+			"/v1/working_project/{id}",
+			DeleteWorkingProject(wpService),
+			true,
+		},
+		Route{
+			"AssignProject",
+			"POST",
+			"/v1/working_project/assign_project",
+			AssignProject(wpService),
+			true,
+		},
+		Route{
+			"PATCH",
+			"/v1/working_project/{id}/upload_document",
+			"Upload Working Project Document",
+			UploadWPDocs(documentService),
+			true,
+		},
+		Route{
+			"GetTeam",
+			http.MethodGet,
+			"/v1/team/{id}",
+			GetTeam(teamService),
+			true,
+		},
+		Route{
+			"QueryTeam",
+			http.MethodGet,
+			"/v1/team",
+			QueryTeam(teamService),
+			true,
+		},
+		Route{
+			"CreateTeam",
+			http.MethodPost,
+			"/v1/team",
+			CreateTeam(teamService),
+			true,
+		},
+		Route{
+			"UpdateTeam",
+			http.MethodPatch,
+			"/v1/team",
+			UpdateTeam(teamService),
+			true,
+		},
+		Route{
+			"DeleteTeam",
+			http.MethodDelete,
+			"/v1/team/{id}",
+			DeleteTeam(teamService),
+			true,
+		},
+		Route{
+			"GetBid",
+			http.MethodGet,
+			"/v1/bid/{id}",
+			GetBid(bidService),
+			true,
+		},
+		Route{
+			"QueryBid",
+			http.MethodGet,
+			"/v1/bid",
+			QueryBid(bidService),
+			true,
+		},
+		Route{
+			"CreateBid",
+			http.MethodPost,
+			"/v1/bid",
+			CreateBid(bidService),
+			true,
+		},
+		Route{
+			"UpdateBid",
+			http.MethodPatch,
+			"/v1/bid",
+			UpdateBid(bidService),
+			true,
+		},
+		Route{
+			"DeleteBid",
+			http.MethodDelete,
+			"/v1/bid/{id}",
+			DeleteBid(bidService),
+			true,
+		},
+		Route{
+			"GetTask",
+			http.MethodGet,
+			"/v1/task/{id}",
+			GetTask(taskService),
+			true,
+		},
+		Route{
+			"QueryTask",
+			http.MethodGet,
+			"/v1/task",
+			QueryTask(taskService),
+			true,
+		},
+		Route{
+			"CreateTask",
+			http.MethodPost,
+			"/v1/task",
+			CreateTask(taskService),
+			true,
+		},
+		Route{
+			"UpdateTask",
+			http.MethodPatch,
+			"/v1/task",
+			UpdateTask(taskService),
+			true,
+		},
+		Route{
+			"DeleteTask",
+			http.MethodDelete,
+			"/v1/task/{id}",
+			DeleteTask(bidService),
+			true,
+		},
+		Route{
+			"GetMileStone",
+			http.MethodGet,
+			"/v1/milestone/{id}",
+			GetMileStone(mileStoneService),
+			true,
+		},
+		Route{
+
+			"QueryMileStone",
+			http.MethodGet,
+			"/v1/milestone",
+			QueryMileStone(mileStoneService),
+			true,
+		},
+		Route{
+			"CreateMileStone",
+			http.MethodPost,
+			"/v1/milestone",
+			CreateMileStone(mileStoneService),
+			true,
+		},
+		Route{
+			"UpdateMileStone",
+			http.MethodPatch,
+			"/v1/milestone",
+			UpdateMileStone(mileStoneService),
+			true,
+		},
+		Route{
+			"DeleteMileStone",
+			http.MethodDelete,
+			"/v1/milestone/{id}",
+			DeleteMileStone(bidService),
+			true,
+		},
+		Route{
+			"QueryProjects",
+			http.MethodGet,
+			"/v1/project",
+			QueryProjects(projectService),
+			true,
+		},
+		Route{
+			"EnquireProject",
+			http.MethodPost,
+			"/v1/project_enquire",
+			EnquireProject(projectService),
+			false,
+		},
+		Route{
+			"GetUser",
+			http.MethodGet,
+			"/v1/me",
+			GetUser(userStore),
+			true,
+		},
+	}
+}
+
+func setSwaggerInfo() {
+	docs.SwaggerInfo.Title = "Crescent API"
+	docs.SwaggerInfo.Description = "This is a crescent server ."
+	docs.SwaggerInfo.Version = "1.0"
+	docs.SwaggerInfo.Host = "localhost:8080"
+	docs.SwaggerInfo.BasePath = "/v1"
+}
