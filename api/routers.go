@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	//"strings"
-
 	"github.com/gorilla/mux"
 )
 
@@ -46,67 +45,10 @@ var routes = Routes{
 		"/v2/",
 		Index,
 	},
-	/*
-		Route{
-			"CreateUser",
-			strings.ToUpper("Post"),
-			"/v2/user",
-			CreateUser,
-		},
-
-		Route{
-			"CreateUsersWithArrayInput",
-			strings.ToUpper("Post"),
-			"/v2/createWithArray",
-			CreateUsersWithArrayInput,
-		},
-
-		Route{
-			"CreateUsersWithListInput",
-			strings.ToUpper("Post"),
-			"/v2/createWithList",
-			CreateUsersWithListInput,
-		},
-
-		Route{
-			"DeleteUserById",
-			strings.ToUpper("Delete"),
-			"/v2/user/{id}",
-			DeleteUserById,
-		},
-
-		Route{
-			"FindByAgeHeader",
-			strings.ToUpper("Get"),
-			"/v2/findByAgeHeader",
-			FindByAgeHeader,
-		},
-
-		Route{
-			"FindByAgeQuery",
-			strings.ToUpper("Get"),
-			"/v2/findByAgeQuery",
-			FindByAgeQuery,
-		},
-
-		Route{
-			"GetUserById",
-			strings.ToUpper("Get"),
-			"/v2/user/{id}",
-			GetUserById,
-		},
-
-		Route{
-			"UpdateUserById",
-			strings.ToUpper("Put"),
-			"/v2/user/{id}",
-			UpdateUserById,
-		},
-		Route{
-			"GetUsers",
-			strings.ToUpper("Get"),
-			"/v2/users",
-			GetUsers,
-		},
-	*/
+	Route{
+		"CreateRoom",
+		"POST",
+		"/v2/chat/create-room",
+		CreateRoom,
+	},
 }
