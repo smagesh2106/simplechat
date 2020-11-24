@@ -37,20 +37,9 @@ func main() {
 	}
 
 	serverPort := os.Getenv("SERVER_PORT")
-	serverSSLPort := os.Getenv("SERVER_SSL_PORT")
-	serverCrtFile := os.Getenv("SERVER_SSL_CERT")
-	serverKeyFile := os.Getenv("SERVER_SSL_KEY")
 	httpOnly := os.Getenv("HTTP_ONLY")
 	httpEnabled, _ := strconv.ParseBool(httpOnly)
 	log.Printf("HTTP only :%v", httpOnly)
-
-	if _, err := os.Stat(serverKeyFile); os.IsNotExist(err) {
-		log.Panic(err)
-	}
-
-	if _, err := os.Stat(serverCrtFile); os.IsNotExist(err) {
-		log.Panic(err)
-	}
 
 	router := api.NewRouter()
 	headers := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
@@ -69,6 +58,18 @@ func main() {
 		log.Fatal(http.ListenAndServe(":"+serverPort, handlers.CORS(origins, headers, methods)(router)))
 		//log.Fatal(http.ListenAndServe(":"+serverPort, handlers.CORS(header, methods, origins)(router)))
 	} else {
+		serverSSLPort := os.Getenv("SERVER_SSL_PORT")
+		serverCrtFile := os.Getenv("SERVER_SSL_CERT")
+		serverKeyFile := os.Getenv("SERVER_SSL_KEY")
+
+		if _, err := os.Stat(serverKeyFile); os.IsNotExist(err) {
+			log.Panic(err)
+		}
+
+		if _, err := os.Stat(serverCrtFile); os.IsNotExist(err) {
+			log.Panic(err)
+		}
+
 		log.Printf("Running in HTTPS mode")
 		log.Fatal(http.ListenAndServeTLS(":"+serverSSLPort, serverCrtFile, serverKeyFile, handlers.CORS(origins, headers, methods)(router)))
 	}
