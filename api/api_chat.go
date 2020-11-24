@@ -16,7 +16,7 @@ func CreateRoom(w http.ResponseWriter, r *http.Request) {
 	var room mod.ChatRoom
 
 	room.RoomID = uuid.New().String()
-
+	//panic("panic while creating room id")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(room)
 }

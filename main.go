@@ -52,6 +52,19 @@ func main() {
 	validator.SetValidationFunc("nonemail", mod.Nonemail)
 	validator.SetValidationFunc("nonint", mod.Nonint)
 
+	go func() {
+		timer := time.NewTimer(1 * time.Second)
+		for {
+			select {
+			case <-timer.C:
+				cleanup()
+			}
+			log.Println("start timer event\n")
+			timer.Reset(time.Minute * 30)
+
+		}
+	}()
+
 	log.Printf("Server started...")
 	if httpEnabled {
 		log.Printf("Running in HTTP mode")
@@ -73,4 +86,20 @@ func main() {
 		log.Printf("Running in HTTPS mode")
 		log.Fatal(http.ListenAndServeTLS(":"+serverSSLPort, serverCrtFile, serverKeyFile, handlers.CORS(origins, headers, methods)(router)))
 	}
+}
+
+func cleanup() {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered in cleanup :", r)
+		}
+	}()
+	//do all clean up logic
+	foo()
+	//bar()
+	//panic( "panic in cleanup ")
+}
+
+func foo() {
+	panic("panic in foo")
 }
