@@ -96,10 +96,15 @@ func cleanup() {
 	}()
 	//do all clean up logic
 	foo()
+	bar()
 	//bar()
 	//panic( "panic in cleanup ")
 }
 
 func foo() {
-	panic("panic in foo")
+	//panic("panic in foo")
+}
+
+func bar() {
+	panic("panic in bar")
 }
