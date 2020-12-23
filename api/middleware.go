@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"os"
@@ -15,7 +16,6 @@ var logger = log.New(os.Stdout, "secure-chat :", log.LstdFlags)
 
 func Validator(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logger.Println("middleware -1 ")
 		auth := r.Header.Get("Authorization")
 
 		if auth == "" {
@@ -34,7 +34,6 @@ func Logger(inner http.Handler, name string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		//start := time.Now()
 		//logger := log.New(os.Stdout, "iam-policy-administration :", log.LstdFlags)
-		logger.Println("middleware -2 ")
 		logger.Printf(
 			"%s %s %s", // %s",
 			r.Method,
@@ -43,5 +42,25 @@ func Logger(inner http.Handler, name string) http.Handler {
 		//	time.Since(start),
 		)
 		inner.ServeHTTP(w, r)
+	})
+}
+
+func Recovery(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if err := recover(); err != nil {
+				log.Printf("Generic Error caught :%v", err)
+
+				jsonBody, _ := json.Marshal(map[string]string{
+					"error": "There was an internal server error",
+				})
+
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write(jsonBody)
+			}
+		}()
+
+		next.ServeHTTP(w, r)
 	})
 }

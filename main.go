@@ -52,6 +52,7 @@ func main() {
 	validator.SetValidationFunc("nonemail", mod.Nonemail)
 	validator.SetValidationFunc("nonint", mod.Nonint)
 
+	//Set up periodic cleanup.
 	go func() {
 		timer := time.NewTimer(1 * time.Second)
 		for {
@@ -61,7 +62,6 @@ func main() {
 			}
 			log.Println("start timer event\n")
 			timer.Reset(time.Minute * 30)
-
 		}
 	}()
 
@@ -95,16 +95,8 @@ func cleanup() {
 		}
 	}()
 	//do all clean up logic
-	foo()
-	bar()
-	//bar()
-	//panic( "panic in cleanup ")
-}
-
-func foo() {
-	//panic("panic in foo")
-}
-
-func bar() {
-	panic("panic in bar")
+	log.Println("Start cleanup.")
+	//panic("panic in cleanup ")
+	time.Sleep(5 * time.Second)
+	log.Println("End cleanup.")
 }
