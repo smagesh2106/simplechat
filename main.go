@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -35,6 +36,8 @@ func main() {
 			label = true
 		}
 	}
+	//Init Rooms
+	mod.InitRooms()
 
 	serverPort := os.Getenv("SERVER_PORT")
 	httpOnly := os.Getenv("HTTP_ONLY")
@@ -54,14 +57,9 @@ func main() {
 
 	//Set up periodic cleanup.
 	go func() {
-		timer := time.NewTimer(1 * time.Second)
-		for {
-			select {
-			case <-timer.C:
-				cleanup()
-			}
-			log.Println("start timer event\n")
-			timer.Reset(time.Minute * 30)
+		for now := range time.Tick(time.Hour * 24) {
+			fmt.Println("Cleanup Start :%v", now)
+			cleanup()
 		}
 	}()
 
@@ -96,7 +94,6 @@ func cleanup() {
 	}()
 	//do all clean up logic
 	log.Println("Start cleanup.")
-	//panic("panic in cleanup ")
 	time.Sleep(5 * time.Second)
 	log.Println("End cleanup.")
 }

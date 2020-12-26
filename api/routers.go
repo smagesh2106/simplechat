@@ -47,13 +47,25 @@ var routes = Routes{
 	Route{
 		"Index",
 		"GET",
-		"/v2/",
+		"/v1/",
 		Index,
 	},
 	Route{
 		"CreateRoom",
 		"POST",
-		"/v2/chat/create-room",
+		"/v1/chat/room/{roomName}",
 		CreateRoom,
+	},
+	Route{
+		"DeleteRoom",
+		"DELETE",
+		"/v1/chat/room/{roomName}",
+		DeleteRoom,
+	},
+	Route{
+		"GetRoomList",
+		"GET",
+		"/v1/chat/room",
+		GetRoomList,
 	},
 }

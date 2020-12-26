@@ -6,7 +6,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var UserCollection *mongo.Collection
+var UserCollectionDB *mongo.Collection
+var ChatRoomDB *mongo.Collection
 
 /*
 var Chat_Session *mongo.Collection
@@ -19,8 +20,9 @@ var UserSession *mongo.Collection
 var Log *log.Logger
 
 func Init_Connections(database string) {
-	//<FIXME: Need different collection for diff object types >
-	UserCollection = Client.Database(database).Collection("users")
+	UserCollectionDB = Client.Database(database).Collection("users")
+	ChatRoomDB = Client.Database(database).Collection("rooms")
+
 	/*
 		Chat_Session = Client.Database(database).Collection("chat_session")
 		Chat_Summary = Client.Database(database).Collection("chat_summary")
@@ -29,5 +31,5 @@ func Init_Connections(database string) {
 		UserRegistration = Client.Database(database).Collection("user_registration")
 		UserSession = Client.Database(database).Collection("user_session")
 	*/
-	Log.Println("Connections to tables done..")
+	log.Println("Connections to tables done..")
 }
