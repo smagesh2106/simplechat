@@ -104,7 +104,7 @@ func (H *chatHub) Run() {
 	}
 }
 
-func (s *Subscription) readThread() {
+func (s *Subscription) ReadThread() {
 	c := s.Conn
 	defer func() {
 		Hub.Unregister <- *s
@@ -117,6 +117,7 @@ func (s *Subscription) readThread() {
 
 	for {
 		_, msg, err := c.Ws.ReadMessage()
+		log.Println("Read this msg from client :", msg)
 		if err != nil {
 			log.Printf("Could not read the msg from ws :%v\n", err)
 			break
@@ -125,7 +126,7 @@ func (s *Subscription) readThread() {
 	}
 }
 
-func (s *Subscription) writeThread() {
+func (s *Subscription) WriteThread() {
 	c := s.Conn
 	defer func() {
 		Hub.Unregister <- *s

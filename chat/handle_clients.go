@@ -21,5 +21,8 @@ func ServeWs(w http.ResponseWriter, r *http.Request, room string, user string) {
 	}
 	c := mod.Connection{Send: make(chan []byte, 256), Ws: ws}
 	s := mod.Subscription{Conn: &c, Room: room, User: user}
+	log.Printf("Registering client %v", s)
 	mod.Hub.Register <- s
+	go s.ReadThread()
+	go s.WriteThread()
 }

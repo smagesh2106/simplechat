@@ -84,14 +84,15 @@ var routes = Routes{
 	Route{
 		"ChatBroadCast",
 		"GET",
-		"ws/v1/chat/broadcast/{roomId}",
+		"/ws/v1/chat/broadcast/{roomId}",
 		ChatSession,
-		"ValidationRequired",
+		"SkipValidation",
+		//"ValidationRequired",
 	},
 	Route{
 		"ChatUnicast",
 		"GET",
-		"ws/v1/chat/unicast/{roomId}/{userId}",
+		"/ws/v1/chat/unicast/{roomId}/{userId}",
 		ChatSession,
 		"ValidationRequired",
 	},
