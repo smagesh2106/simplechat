@@ -45,6 +45,10 @@ func main() {
 	log.Printf("HTTP only :%v", httpOnly)
 
 	router := api.NewRouter()
+
+	// Serve static files from html dir.
+	router.PathPrefix("/html/").Handler(http.StripPrefix("/html/", http.FileServer(http.Dir("./html"))))
+
 	headers := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"})
 	origins := handlers.AllowedOrigins([]string{"*"})
@@ -62,7 +66,7 @@ func main() {
 			cleanup()
 		}
 	}()
-
+	go mod.Hub.Run()
 	log.Printf("Server started...")
 	if httpEnabled {
 		log.Printf("Running in HTTP mode")

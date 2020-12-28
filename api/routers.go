@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	//"strings"
+	"strings"
+
 	"github.com/gorilla/mux"
 )
 
@@ -13,6 +14,7 @@ type Route struct {
 	Method      string
 	Pattern     string
 	HandlerFunc http.HandlerFunc
+	Action      string
 }
 
 type Routes []Route
@@ -20,13 +22,13 @@ type Routes []Route
 func NewRouter() *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
 	for _, route := range routes {
+
 		var handler http.Handler
 		handler = route.HandlerFunc
-
-		handler = Validator(handler)
-
+		if strings.Contains(route.Action, "ValidationRequired") {
+			handler = Validator(handler)
+		}
 		handler = Logger(handler, route.Name)
-
 		handler = Recovery(handler)
 
 		router.
@@ -49,23 +51,48 @@ var routes = Routes{
 		"GET",
 		"/v1/",
 		Index,
+		"SkipValidation",
 	},
 	Route{
 		"CreateRoom",
 		"POST",
 		"/v1/chat/room/{roomName}",
 		CreateRoom,
+		"ValidationRequired",
 	},
 	Route{
 		"DeleteRoom",
 		"DELETE",
 		"/v1/chat/room/{roomName}",
 		DeleteRoom,
+		"ValidationRequired",
 	},
 	Route{
 		"GetRoomList",
 		"GET",
 		"/v1/chat/room",
 		GetRoomList,
+		"ValidationRequired",
+	},
+	Route{
+		"ChatLaunch",
+		"GET",
+		"/v1/chat/html",
+		ChatLaunch,
+		"SkipValidation",
+	},
+	Route{
+		"ChatBroadCast",
+		"GET",
+		"ws/v1/chat/broadcast/{roomId}",
+		ChatSession,
+		"ValidationRequired",
+	},
+	Route{
+		"ChatUnicast",
+		"GET",
+		"ws/v1/chat/unicast/{roomId}/{userId}",
+		ChatSession,
+		"ValidationRequired",
 	},
 }
