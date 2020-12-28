@@ -1,6 +1,7 @@
 package model
 
 import (
+	"log"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -33,6 +34,7 @@ type Connection struct {
 // Chat subcription.
 type Subscription struct {
 	Room string
+	User string
 	Conn *Connection
 }
 
@@ -100,4 +102,58 @@ func (H *chatHub) Run() {
 			}
 		}
 	}
+}
+
+func (s *Subscription) readThread() {
+	c := s.Conn
+	defer func() {
+		Hub.Unregister <- *s
+		c.Ws.Close()
+	}()
+
+	c.Ws.SetReadLimit(maxMessageSize)
+	c.Ws.SetReadDeadline(time.Now().Add(pongWait))
+	c.Ws.SetPongHandler(func(string) error { c.Ws.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+
+	for {
+		_, msg, err := c.Ws.ReadMessage()
+		if err != nil {
+			log.Printf("Could not read the msg from ws :%v\n", err)
+			break
+		}
+		Hub.Broadcast <- Message{Room: s.Room, User: s.User, Data: msg}
+	}
+}
+
+func (s *Subscription) writeThread() {
+	c := s.Conn
+	defer func() {
+		Hub.Unregister <- *s
+		c.Ws.Close()
+	}()
+	ticker := time.NewTicker(pingPeriod)
+
+	for {
+		select {
+		case message, ok := <-c.Send:
+			if !ok {
+				c.write(websocket.CloseMessage, []byte{})
+				return
+			}
+			if err := c.write(websocket.TextMessage, message); err != nil {
+				return
+			}
+		case <-ticker.C:
+			if err := c.write(websocket.PingMessage, []byte{}); err != nil {
+				return
+			}
+
+		}
+	}
+}
+
+// write writes a message with the given message type and payload.
+func (c *Connection) write(mt int, payload []byte) error {
+	c.Ws.SetWriteDeadline(time.Now().Add(writeWait))
+	return c.Ws.WriteMessage(mt, payload)
 }

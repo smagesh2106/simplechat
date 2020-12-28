@@ -20,6 +20,6 @@ func ServeWs(w http.ResponseWriter, r *http.Request, room string, user string) {
 		return
 	}
 	c := mod.Connection{Send: make(chan []byte, 256), Ws: ws}
-	s := mod.Subscription{Conn: &c, Room: room}
+	s := mod.Subscription{Conn: &c, Room: room, User: user}
 	mod.Hub.Register <- s
 }
