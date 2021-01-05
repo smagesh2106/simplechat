@@ -9,16 +9,27 @@ import (
 	//"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	mod "github.com/securechat/model"
+	"gopkg.in/validator.v2"
 )
 
 func CreateRoom(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Header()["Date"] = nil
 	params := mux.Vars(r)
-	roomName := params["roomName"]
+	roomId := params["roomId"]
 
 	var room mod.ChatRoom
-	room.RoomID = roomName
+	room.RoomID = roomId
+
+	//mongo index model works if the value is > 2
+	if err := validator.Validate(room); err != nil {
+		var errMsg mod.ErrMsg
+		errMsg.Error = "Room ID length should be more then 2"
+		log.Println(errMsg.Error)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errMsg)
+		return
+	}
 
 	err := room.CreateChatRoom()
 	if err != nil {
@@ -35,10 +46,10 @@ func DeleteRoom(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Header()["Date"] = nil
 	params := mux.Vars(r)
-	roomName := params["roomName"]
+	roomId := params["roomId"]
 
 	var room mod.ChatRoom
-	room.RoomID = roomName
+	room.RoomID = roomId
 
 	result, err := room.DeleteChatRoom()
 	if err != nil {

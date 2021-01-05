@@ -10,15 +10,19 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/x/bsonx"
+	//"go.mongodb.org/mongo-driver/x/bsonx"
 )
 
 type ChatRoom struct {
-	RoomID string `json:"roomid" bson: "roomid"`
+	RoomID string `validate:"min=3" json:"roomid  bson:"roomid"`
 }
 
 type ChatRoomList struct {
 	Rooms []ChatRoom `json:"rooms" bson: "rooms"`
+}
+
+type ErrMsg struct {
+	Error string `json:"error"`
 }
 
 /*
@@ -28,12 +32,14 @@ func (room *ChatRoom) CreateChatRoom() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	mod := mongo.IndexModel{
-		Keys:    bsonx.Doc{{Key: "roomid", Value: bsonx.String("text")}},
+		//Keys:    bsonx.Doc{{Key: "roomid", Value: bsonx.String("text")}},
+		Keys:    bson.D{{"roomid", "text"}},
 		Options: options.Index().SetUnique(true),
 	}
 
 	_, err := db.ChatRoomDB.Indexes().CreateOne(ctx, mod)
 	if err != nil {
+		log.Printf("Unable to create unique index : %v", err)
 		return err
 	}
 	_, err = db.ChatRoomDB.InsertOne(ctx, room)
@@ -93,7 +99,8 @@ func GetAllChatRooms() (*ChatRoomList, error) {
  * Init Rooms
  */
 func InitRooms() {
-	var list []string = []string{"Pune", "Chennai", "Mumbai", "Bangalore", "Hyderabad", "Punjab", "UP", "Delhi", "Ahmedabad"}
+	var list []string = []string{"Pune", "Chennai", "Mumbai", "Bangalore", "Hyderabad", "Punjab", "Delhi", "Ahmedabad", "Kolkata", "Madurai",
+		"Belgaum"}
 
 	for _, r := range list {
 		room := ChatRoom{RoomID: r}

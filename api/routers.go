@@ -56,14 +56,14 @@ var routes = Routes{
 	Route{
 		"CreateRoom",
 		"POST",
-		"/v1/chat/room/{roomName}",
+		"/v1/chat/room/{roomId}",
 		CreateRoom,
 		"ValidationRequired",
 	},
 	Route{
 		"DeleteRoom",
 		"DELETE",
-		"/v1/chat/room/{roomName}",
+		"/v1/chat/room/{roomId}",
 		DeleteRoom,
 		"ValidationRequired",
 	},
