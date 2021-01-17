@@ -31,13 +31,13 @@ type ErrMsg struct {
 func (room *ChatRoom) CreateChatRoom() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	mod := mongo.IndexModel{
+	index := mongo.IndexModel{
 		//Keys:    bsonx.Doc{{Key: "roomid", Value: bsonx.String("text")}},
-		Keys:    bson.D{{"roomid", "text"}},
+		Keys:    bson.D{{"roomid", 1}},
 		Options: options.Index().SetUnique(true),
 	}
 
-	_, err := db.ChatRoomDB.Indexes().CreateOne(ctx, mod)
+	_, err := db.ChatRoomDB.Indexes().CreateOne(ctx, index)
 	if err != nil {
 		log.Printf("Unable to create unique index : %v", err)
 		return err

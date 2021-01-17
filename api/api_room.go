@@ -48,6 +48,12 @@ func DeleteRoom(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	roomId := params["roomId"]
 
+	if (roomId == "") || (len(roomId) == 0) {
+		log.Println("Invalid Room")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	var room mod.ChatRoom
 	room.RoomID = roomId
 

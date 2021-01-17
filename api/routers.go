@@ -84,7 +84,7 @@ var routes = Routes{
 	Route{
 		"ChatBroadCast",
 		"GET",
-		"/ws/v1/chat/broadcast/{roomId}",
+		"/v1/ws/chat/broadcast/{roomId}",
 		ChatSession,
 		"SkipValidation",
 		//"ValidationRequired",
@@ -92,8 +92,22 @@ var routes = Routes{
 	Route{
 		"ChatUnicast",
 		"GET",
-		"/ws/v1/chat/unicast/{roomId}/{userId}",
+		"/v1/ws/chat/unicast/{roomId}/{userId}",
 		ChatSession,
+		"ValidationRequired",
+	},
+	Route{
+		"DeleteUser",
+		"DELETE",
+		"/v1/admin/user/{userId}",
+		DeleteUser,
+		"ValidationRequired",
+	},
+	Route{
+		"CreateUser",
+		"POST",
+		"/v1/user",
+		CreateUser,
 		"ValidationRequired",
 	},
 }
