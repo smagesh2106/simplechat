@@ -4,6 +4,8 @@ import (
 	"log"
 	"net/http"
 
+	//"path/filepath"
+
 	"github.com/gorilla/mux"
 	c "github.com/securechat/chat"
 	//"path"
@@ -15,6 +17,8 @@ func ChatLaunch(w http.ResponseWriter, r *http.Request) {
 	log.Println("Attempting to serve", "index.html")
 	//http.ServeFile(w, r, filepath.Join(".", "html", "index.html"))
 	http.ServeFile(w, r, "./html/index.html")
+	//http.ServeFile(w, r, "index.html")
+	log.Println("Done serving ", "index.html")
 }
 
 func ChatSession(w http.ResponseWriter, r *http.Request) {

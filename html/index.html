@@ -7,6 +7,8 @@
             let conn;
             let msg = document.getElementById("msg");
             let log = document.getElementById("log");
+            const urlParams = new URLSearchParams(window.location.search);
+            const room = urlParams.get('room');
 
             function appendLog(item) {
                 let doScroll = log.scrollTop > log.scrollHeight - log.clientHeight - 1;
@@ -31,7 +33,9 @@
             if (window["WebSocket"]) {
                 const params = window.location.href.split("/");
                 const roomId = params[params.length - 1];
-                conn = new WebSocket("ws://" + document.location.host + "/ws/v1/chat/broadcast/" + roomId);
+                console.log( "-->"+room)
+                console.log( "ws://" + document.location.host + "/v1/ws/chat/broadcast/" + room)
+                conn = new WebSocket("ws://" + document.location.host + "/v1/ws/chat/broadcast/" + room);
                 conn.onclose = function (evt) {
                     let item = document.createElement("div");
                     item.innerHTML = "<b>Connection closed.</b>";

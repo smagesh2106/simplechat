@@ -14,6 +14,7 @@ var upgrader = websocket.Upgrader{
 }
 
 func ServeWs(w http.ResponseWriter, r *http.Request, room string, user string) {
+	log.Println("Inside broadcast router....")
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Printf("WS Socket upgrade error :%v", err)

@@ -47,7 +47,8 @@ func main() {
 	router := api.NewRouter()
 
 	// Serve static files from html dir.
-	router.PathPrefix("/html/").Handler(http.StripPrefix("/html/", http.FileServer(http.Dir("./html"))))
+	router.PathPrefix("/html").Handler(http.FileServer(http.Dir("./html/")))
+	//router.PathPrefix("/html/").Handler(http.StripPrefix("/html/", http.FileServer(http.Dir("./html"))))
 
 	headers := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"})
