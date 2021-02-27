@@ -9,7 +9,8 @@
             let log = document.getElementById("log");
             const urlParams = new URLSearchParams(window.location.search);
             const room = urlParams.get('room');
-
+            const user = urlParams.get('user');
+            
             function appendLog(item) {
                 let doScroll = log.scrollTop > log.scrollHeight - log.clientHeight - 1;
                 log.appendChild(item);
@@ -31,11 +32,23 @@
             };
 
             if (window["WebSocket"]) {
-                const params = window.location.href.split("/");
-                const roomId = params[params.length - 1];
-                console.log( "-->"+room)
-                console.log( "ws://" + document.location.host + "/v1/ws/chat/broadcast/" + room)
-                conn = new WebSocket("ws://" + document.location.host + "/v1/ws/chat/broadcast/" + room);
+                //const params = window.location.href.split("/");
+                //const room = params[params.length - 1];
+                console.log( "room :"+room+",  user:"+user);
+                
+                if( room != null && user != null ){
+                  console.log( " I have both user and room")
+                  conn = new WebSocket("ws://" + document.location.host + "/v1/ws/chat/unicast/" + room + "/" + user);                
+                }else if( room != null ){
+                  conn = new WebSocket("ws://" + document.location.host + "/v1/ws/chat/broadcast/" + room);
+                }else{
+                  console.log( "wrong args.")
+                }
+                
+                //console.log( "ws://" + document.location.host + "/v1/ws/chat/broadcast/" + room)
+                //conn = new WebSocket("ws://" + document.location.host + "/v1/ws/chat/broadcast/" + room);
+                
+                if( conn != null ){
                 conn.onclose = function (evt) {
                     let item = document.createElement("div");
                     item.innerHTML = "<b>Connection closed.</b>";
@@ -48,6 +61,7 @@
                         item.innerText = messages[i];
                         appendLog(item);
                     }
+                };
                 };
             } else {
                 let item = document.createElement("div");

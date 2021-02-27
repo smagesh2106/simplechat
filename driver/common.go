@@ -2,6 +2,7 @@ package driver
 
 import (
 	"log"
+	"os"
 
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -17,7 +18,8 @@ var Categories *mongo.Collection
 var UserRegistration *mongo.Collection
 var UserSession *mongo.Collection
 */
-var Log *log.Logger
+//var Log *log.Logger
+var Log = log.New(os.Stdout, "secure-chat :", log.LstdFlags)
 
 func Init_Connections(database string) {
 	UserCollectionDB = Client.Database(database).Collection("users")

@@ -2,15 +2,16 @@ package api
 
 import (
 	"encoding/json"
-	"log"
+	//"log"
 	"net/http"
-	"os"
+	//"os"
 	//"time"
 	//"regexp"
 	//"strings"
+	u "github.com/securechat/driver"
 )
 
-var logger = log.New(os.Stdout, "secure-chat :", log.LstdFlags)
+//var log = log.New(os.Stdout, "secure-chat :", log.LstdFlags)
 
 //var regex = regexp.MustCompile("\\s*")
 
@@ -23,7 +24,7 @@ func Validator(next http.Handler) http.Handler {
 			w.Write([]byte("Not Authorized."))
 			return
 		} else {
-			logger.Printf("Token :%v", auth)
+			u.Log.Printf("Token :%v", auth)
 			//logger.Println("Token :" + strings.Split(strings.Trim(auth),
 		}
 		next.ServeHTTP(w, r)
@@ -34,7 +35,7 @@ func Logger(inner http.Handler, name string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		//start := time.Now()
 		//logger := log.New(os.Stdout, "iam-policy-administration :", log.LstdFlags)
-		logger.Printf(
+		u.Log.Printf(
 			"%s %s %s", // %s",
 			r.Method,
 			r.RequestURI,
@@ -49,7 +50,7 @@ func Recovery(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
-				log.Printf("Generic Error caught :%v", err)
+				u.Log.Printf("Generic Error caught :%v", err)
 
 				jsonBody, _ := json.Marshal(map[string]string{
 					"error": "There was an internal server error",

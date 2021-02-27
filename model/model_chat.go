@@ -2,40 +2,34 @@ package model
 
 import (
 	"log"
-	//"time"
 
 	"github.com/gorilla/websocket"
 )
 
 const (
-	// Time allowed to write a message to the peer.
-	//writeWait = 10 * time.Second
-	// Time allowed to read the next pong message from the peer.
-	//pongWait = 60 * time.Second
-	// Send pings to peer with this period. Must be less than pongWait.
-	//pingPeriod = (pongWait * 9) / 10
-	// Maximum message size allowed from peer.
 	maxMessageSize = 512
 )
 
 // Message to the room or user
 type Message struct {
-	Room string
-	User string
-	Data []byte
+	Room       string
+	TargetUser string
+	Data       []byte
+	Owner      string
 }
 
 // Websocket connection, read data from websocket and send it to the byte chan.
 type Connection struct {
-	Ws   *websocket.Conn
-	Send chan []byte
+	Ws    *websocket.Conn
+	Send  chan []byte
+	Owner string
 }
 
 // Chat subcription.
 type Subscription struct {
-	Room string
-	User string
-	Conn *Connection
+	Room       string
+	TargetUser string
+	Conn       *Connection
 }
 
 type chatHub struct {
@@ -98,7 +92,22 @@ func (H *chatHub) Run() {
 						delete(H.Rooms, m.Room)
 					}
 				}
+			}
 
+		case m := <-H.Unicast:
+			connections := H.Rooms[m.Room]
+			for c := range connections {
+				if c.Owner == m.TargetUser || c.Owner == m.Owner {
+					select {
+					case c.Send <- m.Data:
+					default:
+						close(c.Send)
+						delete(connections, c)
+						if len(connections) == 0 {
+							delete(H.Rooms, m.Room)
+						}
+					}
+				}
 			}
 		}
 	}
@@ -112,17 +121,19 @@ func (s *Subscription) ReadThread() {
 	}()
 
 	c.Ws.SetReadLimit(maxMessageSize)
-	//c.Ws.SetReadDeadline(time.Now().Add(pongWait))
-	//c.Ws.SetPongHandler(func(string) error { c.Ws.SetReadDeadline(time.Now().Add(pongWait)); return nil })
-
 	for {
 		_, msg, err := c.Ws.ReadMessage()
-		log.Println("Read this msg from client :", msg)
+		msg = []byte("Host-User :" + string(msg))
 		if err != nil {
 			log.Printf("Could not read the msg from ws :%v\n", err)
 			break
 		}
-		Hub.Broadcast <- Message{Room: s.Room, User: s.User, Data: msg}
+
+		if s.TargetUser == "boradcast" {
+			Hub.Broadcast <- Message{Room: s.Room, TargetUser: s.TargetUser, Owner: s.Conn.Owner, Data: msg}
+		} else {
+			Hub.Unicast <- Message{Room: s.Room, TargetUser: s.TargetUser, Owner: s.Conn.Owner, Data: msg}
+		}
 	}
 }
 
@@ -132,7 +143,6 @@ func (s *Subscription) WriteThread() {
 		Hub.Unregister <- *s
 		c.Ws.Close()
 	}()
-	//ticker := time.NewTicker(pingPeriod)
 
 	for {
 		select {
@@ -146,41 +156,7 @@ func (s *Subscription) WriteThread() {
 					return
 				}
 			}
-			/*
-				case <-ticker.C:
-					if err := c.Ws.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
-						return
-					}
-			*/
 		}
 
 	}
-
-	/*
-		for {
-			select {
-			case message, ok := <-c.Send:
-				if !ok {
-					c.write(websocket.CloseMessage, []byte{})
-					return
-				}
-				if err := c.write(websocket.TextMessage, message); err != nil {
-					return
-				}
-			case <-ticker.C:
-				if err := c.write(websocket.PingMessage, []byte{}); err != nil {
-					return
-				}
-
-			}
-		}
-	*/
 }
-
-// write writes a message with the given message type and payload.
-/*
-func (c *Connection) write(mt int, payload []byte) error {
-	c.Ws.SetWriteDeadline(time.Now().Add(writeWait))
-	return c.Ws.WriteMessage(mt, payload)
-}
-*/
