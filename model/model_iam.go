@@ -18,6 +18,8 @@ import (
 var Session map[string]time.Time
 
 type User struct {
+	FirstName string    `json:"firstName" bson:"firstName" validate:"min=3,max=15,nonnil,nonzero"`
+	LastName  string    `json:"lastName" bson:"lastName" validate:"min=3,max=15,nonnil,nonzero"`
 	UserID    string    `json:"userid" bson:"userid" validate:"min=3,max=30,nonnil,nonzero,regexp=^[A-Za-z0-9!@#-_.]+$"`
 	Password  string    `json:password bson:"password" validate:"min=8,max=30,nonnil,nonzero"`
 	Email     string    `json:"email" bson:"email" validate:"min=3,max=30,nonnil,nonzero"`
@@ -55,26 +57,22 @@ func (user *User) CreateUser() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	var err error
-	found := false
 
-LABEL:
-	for _, key := range []string{"userid", "email"} {
-		index := mongo.IndexModel{
-			Keys:    bson.D{{key, 1}},
+	indexes := []mongo.IndexModel{
+		{
+			Keys:    bson.D{{"userid", 1}},
 			Options: options.Index().SetUnique(true),
-		}
-		_, err = db.UserCollectionDB.Indexes().CreateOne(ctx, index)
-		if err != nil {
-			log.Printf("Unable to create index :%v,  error : %v\n", key, err)
-			found = true
-			break LABEL
-		}
+		}, {
+			Keys:    bson.D{{"email", 1}},
+			Options: options.Index().SetUnique(true),
+		},
 	}
-
-	if found {
+	opts := options.CreateIndexes().SetMaxTime(10 * time.Second)
+	_, err = db.UserCollectionDB.Indexes().CreateMany(ctx, indexes, opts)
+	if err != nil {
+		log.Printf("Unable to create index, error : %v\n", err)
 		return err
 	}
-
 	_, err = db.UserCollectionDB.InsertOne(ctx, user)
 	if err != nil {
 		log.Printf("Unable to create user : %v", err)

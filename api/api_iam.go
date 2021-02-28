@@ -55,14 +55,16 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	//validate user
 	if err := validator.Validate(user); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(err)
 		return
 	}
 	user.CreatedAt = time.Now()
 	user.LastLogin = time.Now()
-	err = user.CreateUser()
+	err = (&user).CreateUser()
 	if err != nil {
 		var errMsg mod.ErrMsg
+		log.Println("userid, email has to be unique")
 		errMsg.Error = "userid, email has to be unique"
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(errMsg)

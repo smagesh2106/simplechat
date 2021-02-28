@@ -98,20 +98,19 @@ var routes = Routes{
 		ChatUnicast,
 		"SkipValidation",
 	},
-	/*
-		Route{
-			"DeleteUser",
-			"DELETE",
-			"/v1/admin/user/{userId}",
-			DeleteUser,
-			"ValidationRequired",
-		},
-		Route{
-			"CreateUser",
-			"POST",
-			"/v1/user",
-			CreateUser,
-			"ValidationRequired",
-		},
-	*/
+
+	Route{
+		"DeleteUser",
+		"DELETE",
+		"/v1/admin/user/{userId}",
+		DeleteUser,
+		"ValidationRequired",
+	},
+	Route{
+		"CreateUser",
+		"POST",
+		"/v1/user",
+		CreateUser,
+		"ValidationRequired",
+	},
 }

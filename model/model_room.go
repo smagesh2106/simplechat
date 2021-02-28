@@ -99,10 +99,10 @@ func GetAllChatRooms() (*ChatRoomList, error) {
  * Init Rooms
  */
 func InitRooms() {
-	var list []string = []string{"Pune", "Chennai", "Mumbai", "Bangalore", "Hyderabad", "Punjab", "Delhi", "Ahmedabad", "Kolkata", "Madurai",
+	var initList []string = []string{"Pune", "Chennai", "Mumbai", "Bangalore", "Hyderabad", "Punjab", "Delhi", "Ahmedabad", "Kolkata", "Madurai",
 		"Belgaum"}
 
-	for _, r := range list {
+	for _, r := range initList {
 		room := ChatRoom{RoomID: r}
 		(&room).CreateChatRoom()
 	}
