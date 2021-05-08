@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	guuid "github.com/google/uuid"
 	"github.com/gorilla/mux"
 
 	mod "github.com/securechat/model"
@@ -42,7 +43,7 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 /*
  * Create a User.
  */
-func CreateUser(w http.ResponseWriter, r *http.Request) {
+func SignUp(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Header()["Date"] = nil
 
@@ -61,7 +62,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	user.CreatedAt = time.Now()
 	user.LastLogin = time.Now()
-	err = (&user).CreateUser()
+	err = (&user).Signup()
 	if err != nil {
 		var errMsg mod.ErrMsg
 		log.Println("userid, email has to be unique")
@@ -72,4 +73,37 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
+}
+
+/*
+ * Login User.
+ */
+func Login(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.Header()["Date"] = nil
+
+	userLogin := mod.UserLogin{}
+	err := json.NewDecoder(r.Body).Decode(&userLogin)
+	if err != nil {
+		log.Printf("Error user login input encoding %v\n", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	//validate user
+	if err := validator.Validate(userLogin); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(err)
+		return
+	}
+
+	session, err := userLogin.Login()
+	if err != nil {
+		log.Printf("Error Unable to find userid %v\n", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	id := guuid.New().String()
+	mod.LoggedInUsers[id] = session
+	w.Header().Set("SESSIONID", id)
+	w.WriteHeader(http.StatusOK)
 }

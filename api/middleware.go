@@ -17,7 +17,7 @@ import (
 
 func Validator(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		auth := r.Header.Get("Authorization")
+		auth := r.Header.Get("SESSIONID")
 
 		if auth == "" {
 			w.WriteHeader(http.StatusUnauthorized)

@@ -35,7 +35,7 @@ func Init_Mongo() error {
 	Log.Println("mongodb set start")
 
 	tlsConfig := new(tls.Config)
-	tlsConfig.InsecureSkipVerify = false
+	tlsConfig.InsecureSkipVerify = true
 
 	key := os.Getenv("DB_SSL_CLIENT_KEY")
 	cert := os.Getenv("DB_SSL_CLIENT_CERT")
@@ -74,7 +74,7 @@ func Init_Mongo() error {
 	Client, _ = mongo.Connect(ctx, clientOptions)
 	err = Client.Ping(ctx, nil)
 	if err != nil {
-		Log.Printf("mongo connection error %v", err)
+		Log.Printf("Mongo connection error :- %v", err)
 		return err
 	}
 	DB = Client.Database(database)

@@ -3,9 +3,10 @@ build-binary: clean fmt
 	rm -f go.sum
 	go get -v -t -d ./...
 	$(eval DIR := $(GOPATH)/src/github.com/securechat)
-	CGO_ENABLED=0 GO111MODULE=on GOOS=$(GOOS) go build -o $(GOPATH)/bin/securechat 
+	CGO_ENABLED=0 GO111MODULE=on GOOS=$(GOOS) go build -o $(GOPATH)/bin/securechat
 	go mod tidy
 	rm -f go.sum
+	cp -r html $(GOPATH)/bin 
 	
 PHONY: fmt
 fmt:
